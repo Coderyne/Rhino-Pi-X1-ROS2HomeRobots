@@ -1,0 +1,6 @@
+tool: AC5
+fileName: 'CtrlBoard-H7_IMU.map'
+elfName: 'CtrlBoard-H7_IMU.axf'
+compilerName: 'ARM Compiler'
+compilerFullName: 'Component: ARM Compiler 5.06 update 5 (build 528)'
+compilerPath: 'E:\Keil\ARM\ARMCC\bin\armcc.exe'

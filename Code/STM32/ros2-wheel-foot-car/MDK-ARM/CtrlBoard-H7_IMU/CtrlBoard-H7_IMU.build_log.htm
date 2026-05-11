@@ -1,0 +1,86 @@
+<html>
+<body>
+<pre>
+<h1>µVision Build Log</h1>
+<h2>Tool Versions:</h2>
+IDE-Version: ¦ÌVision V5.39.0.0
+Copyright (C) 2023 ARM Ltd and ARM Germany GmbH. All rights reserved.
+License Information: 11 11, 11, LIC=PE7DL-0ZXPH-8TJ3P-MB4D7-PT15K-KP3B1
+ 
+Tool Versions:
+Toolchain:       MDK-ARM Plus  Version: 5.39.0.0
+Toolchain Path:  D:\Keil_v5\ARM\ARMCC\Bin
+C Compiler:      Armcc.exe V5.06 update 7 (build 960)
+Assembler:       Armasm.exe V5.06 update 7 (build 960)
+Linker/Locator:  ArmLink.exe V5.06 update 7 (build 960)
+Library Manager: ArmAr.exe V5.06 update 7 (build 960)
+Hex Converter:   FromElf.exe V5.06 update 7 (build 960)
+CPU DLL:         SARMCM3.DLL V5.39.0.0
+Dialog DLL:      DCM.DLL V1.17.5.0
+Target DLL:      CMSIS_AGDI.dll V1.33.16.0
+Dialog DLL:      TCM.DLL V1.56.4.0
+ 
+<h2>Project:</h2>
+E:\ROS2ÂÖ×ã\ros2-wheel-foot-car\MDK-ARM\CtrlBoard-H7_IMU.uvprojx
+Project File Date:  05/09/2026
+
+<h2>Output:</h2>
+*** Using Compiler 'V5.06 update 7 (build 960)', folder: 'D:\Keil_v5\ARM\ARMCC\Bin'
+Build target 'CtrlBoard-H7_IMU'
+compiling ros2_task.c...
+../User/Devices/SW_Motor/gim6010_drv.h(138): warning:  #1-D: last line of file ends without a newline
+  #endif /* __GIM6010_DRV_H__ */
+../User/APP/Power/power_task.h(13): warning:  #1295-D: Deprecated declaration StartPowerTask - give arg types
+  void StartPowerTask();
+..\User\APP\ROS\ros2_task.c: 2 warnings, 0 errors
+compiling xbox_task.c...
+..\User\APP\xbox_task.h(49): warning:  #1295-D: Deprecated declaration Xbox_ProcessData - give arg types
+  void Xbox_ProcessData();
+../User/Devices/SW_Motor/gim6010_drv.h(138): warning:  #1-D: last line of file ends without a newline
+  #endif /* __GIM6010_DRV_H__ */
+../User/APP/Vofa/vofa_task.h(20): warning:  #1295-D: Deprecated declaration StartVofaTask - give arg types
+  void StartVofaTask();
+..\User\APP\xbox_task.c(36): warning:  #177-D: variable "last_leftStickY_zero"  was declared but never referenced
+      static bool last_leftStickY_zero = true;
+..\User\APP\xbox_task.c(39): warning:  #177-D: variable "btn_b"  was declared but never referenced
+      bool btn_b = xboxController.btnB;
+..\User\APP\xbox_task.c: 5 warnings, 0 errors
+compiling freertos.c...
+../User/Devices/SW_Motor/gim6010_drv.h(138): warning:  #1-D: last line of file ends without a newline
+  #endif /* __GIM6010_DRV_H__ */
+../User/APP/xbox_task.h(49): warning:  #1295-D: Deprecated declaration Xbox_ProcessData - give arg types
+  void Xbox_ProcessData();
+../User/APP/Power/power_task.h(13): warning:  #1295-D: Deprecated declaration StartPowerTask - give arg types
+  void StartPowerTask();
+../User/APP/Vofa/vofa_task.h(20): warning:  #1295-D: Deprecated declaration StartVofaTask - give arg types
+  void StartVofaTask();
+../Core/Src/freertos.c: 4 warnings, 0 errors
+linking...
+Program Size: Code=74572 RO-data=3368 RW-data=1400 ZI-data=45912  
+FromELF: creating hex file...
+"CtrlBoard-H7_IMU\CtrlBoard-H7_IMU.axf" - 0 Error(s), 11 Warning(s).
+
+<h2>Software Packages used:</h2>
+
+Package Vendor: ARM
+                http://www.keil.com/pack/ARM.CMSIS.5.9.0.pack
+                ARM::CMSIS@5.9.0
+                CMSIS (Common Microcontroller Software Interface Standard)
+   * Component: CORE Version: 5.6.0
+
+Package Vendor: Keil
+                https://www.keil.com/pack/Keil.STM32H7xx_DFP.4.1.3.pack
+                Keil::STM32H7xx_DFP@4.1.3
+                STMicroelectronics STM32H7 Series Device Support
+
+<h2>Collection of Component include folders:</h2>
+  ./RTE/_CtrlBoard-H7_IMU
+  D:/Keil_v5_Packs/ARM/CMSIS/5.9.0/CMSIS/Core/Include
+
+<h2>Collection of Component Files used:</h2>
+
+   * Component: ARM::CMSIS:CORE@5.6.0
+Build Time Elapsed:  00:00:08
+</pre>
+</body>
+</html>
