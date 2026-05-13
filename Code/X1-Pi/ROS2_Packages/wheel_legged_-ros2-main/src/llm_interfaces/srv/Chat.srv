@@ -1,0 +1,5 @@
+string prompt
+---
+string response
+int32 tokens_generated
+float64 inference_time_ms

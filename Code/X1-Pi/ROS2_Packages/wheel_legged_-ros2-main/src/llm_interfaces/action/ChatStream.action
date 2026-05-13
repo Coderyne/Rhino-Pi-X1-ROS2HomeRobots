@@ -1,0 +1,11 @@
+# Goal
+string prompt
+---
+# Result
+string response
+int32 tokens_generated
+float64 inference_time_ms
+---
+# Feedback
+string partial_text
+int32 token_count
