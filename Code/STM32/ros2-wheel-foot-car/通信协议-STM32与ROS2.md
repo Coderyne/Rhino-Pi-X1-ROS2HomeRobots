@@ -295,58 +295,7 @@ def pack_command(timestamp: float, v_set: float, yaw_rate: float,
 
 ---
 
-## 五、AI 提示词模板
-
-以下提示词可直接发给 AI 助手以生成 ROS2 上位机 Python 代码:
-
----
-
-### 基础版提示词
-
-```
-我有一台通过 USB CDC 虚拟串口与 STM32 通信的轮足机器人, 需要编写
-ROS2 (Humble) Python 节点, 实现双向通信。请根据以下协议完成代码:
-
-1. 物理连接: /dev/ttyACM0, 波特率对 CDC 无效可忽略
-2. 帧格式: 0xAA 0x55 | Type(1B) | Len(1B) | Payload(Len B) | CRC16(2B LSB)
-   - CRC16-CCITT: poly=0x1021, init=0xFFFF, 覆盖 Type+Len+Payload
-3. 遥测帧 (Type=0x01): 96 bytes payload, Python struct 格式 '<23f4B'
-   字段: timestamp, roll, pitch, yaw, gyro_x, gyro_y, gyro_z,
-         accel_x, accel_y, accel_z, vel_n, pos_n,
-         theta_L, L0_L, wheel_T_L, Tp_L, d_theta_L,
-         theta_R, L0_R, wheel_T_R, Tp_R, d_theta_R,
-         battery_voltage, start_flag, jump_flag, contact_L, contact_R
-4. 指令帧 (Type=0x02): 25 bytes payload, Python struct 格式 '<6fB'
-   字段: timestamp, v_set, yaw_rate_set, roll_set, leg_set, pitch_set, cmd_flags
-   cmd_flags: bit0=使能, bit1=跳跃, bit2=急停, bit3=倒地自起
-5. 遥测 100Hz 持续发送; 需要字节级状态机拼帧 (CDC 可能拆包)
-6. 发布 topic: /imu (sensor_msgs/Imu), /odom (nav_msgs/Odometry),
-   /joint_states (sensor_msgs/JointState), /battery (sensor_msgs/BatteryState)
-7. 订阅 topic: /cmd_vel (geometry_msgs/Twist) 映射到 v_set + yaw_rate_set
-8. 每 100ms 无指令自动超时停止 (需要节点持续发心跳指令)
-9. 用 rclpy.spin_once 或 timer 驱动主循环, 不要阻塞在串口读
-```
-
-### 进阶版提示词（含更多上下文）
-
-```
-[在此粘贴本 .md 文档全文]
-
-请在 ROS2 Humble + Python 中实现完整的上位机通信节点, 要求:
-- 类名: WheelFootBridge
-- 自动检测 /dev/ttyACM* 并连接
-- 100Hz 遥测解析 + 50Hz 指令下发 (两个独立定时器)
-- 订阅 /cmd_vel 映射为 v_set/yaw_rate_set
-- 订阅 /cmd_attitude (自定义 Float32MultiArray: [roll, pitch, leg])
-- 服务 /enable 和 /estop 控制启停
-- 参数: port, telemetry_rate, cmd_rate, timeout_ms
-- 线程安全的串口帧解析
-- launch 文件
-```
-
----
-
-## 六、下位机源码位置
+## 五、下位机源码位置
 
 | 文件 | 内容 |
 |------|------|
