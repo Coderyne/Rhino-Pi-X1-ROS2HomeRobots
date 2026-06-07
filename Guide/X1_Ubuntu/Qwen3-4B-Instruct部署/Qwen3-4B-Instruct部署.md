@@ -25,7 +25,7 @@ unzip qnn236_qcs8550_cl4096.zip
 
 ## 导入Tokenizer
 MMS的模型包中不包含 tokenizer，需复用 Qwen3-4B (cl2048) 的 `qwen3-4b-tokenizer.json`\
-将qwen3-4b-tokenizer.json复制到当前模型目录即可
+将qwen3-4b-tokenizer.json(位于X1-Pi/Aid_LLM)复制到当前模型目录即可
 
 ## 模型目录结构
 
