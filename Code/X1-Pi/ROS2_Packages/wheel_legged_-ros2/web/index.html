@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>轮足机器人 — 控制仪表盘</title>
+<link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Top App Bar -->
+  <div class="header">
+    <h1>
+      <span class="material-symbols-rounded md-icon">precision_manufacturing</span>
+      轮足机器人 实时监控
+    </h1>
+    <div class="header-right">
+      <div class="status-row">
+        <span class="status-badge" id="badgeStart">停止</span>
+        <span class="status-badge" id="badgeEnable">未使能</span>
+      </div>
+      <div class="connection-status" id="connStatus">
+        <span class="material-symbols-rounded md-icon">cloud_off</span>
+        <span>连接中...</span>
+      </div>
+      <button id="btnTheme" class="theme-toggle" title="切换亮色/暗色模式">
+        <span class="material-symbols-rounded md-icon">light_mode</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Row 1: Map (left) + Sidebar (right) -->
+  <div class="main-layout">
+    <!-- Map -->
+    <div class="card map-panel" id="mapPanel">
+      <div class="map-panel__header">
+        <div class="card__title">
+          <span class="material-symbols-rounded md-icon">map</span>
+          实时地图
+          <span class="cov-indicator" id="covBadge">
+            <span class="material-symbols-rounded md-icon" style="font-size:14px">gps_fixed</span>
+            <span id="covValue">-</span>
+          </span>
+        </div>
+        <div class="map-toolbar">
+          <span class="map-mode-badge" id="mapMode">等待地图...</span>
+          <button id="btnZoomOut" class="md-btn md-btn--outlined md-ripple" style="height:28px;font-size:12px;padding:0 8px;min-width:28px;" onclick="mapZoomOut()" title="缩小">
+            <span class="material-symbols-rounded md-icon" style="font-size:14px">remove</span>
+          </button>
+          <span class="zoom-display" id="zoomLevelDisplay">100%</span>
+          <button id="btnZoomIn" class="md-btn md-btn--outlined md-ripple" style="height:28px;font-size:12px;padding:0 8px;min-width:28px;" onclick="mapZoomIn()" title="放大">
+            <span class="material-symbols-rounded md-icon" style="font-size:14px">add</span>
+          </button>
+          <button id="btnZoomReset" class="md-btn md-btn--outlined md-ripple" style="height:28px;font-size:12px;padding:0 8px;" onclick="mapZoomReset()" title="重置视图">
+            <span class="material-symbols-rounded md-icon" style="font-size:14px">center_focus_strong</span>
+          </button>
+          <button id="btnSaveMap" class="md-btn md-btn--outlined md-ripple" style="height:28px;font-size:12px;padding:0 8px;" title="保存地图">
+            <span class="material-symbols-rounded md-icon" style="font-size:14px">save</span>
+          </button>
+          <button id="btnInitPose" class="md-btn md-btn--outlined md-ripple" style="height:28px;font-size:12px;padding:0 8px;" title="设置初始位姿">
+            <span class="material-symbols-rounded md-icon" style="font-size:14px">my_location</span>
+          </button>
+          <button id="btnNavGoal" class="md-btn md-btn--filled md-ripple" style="height:28px;font-size:12px;padding:0 8px;" title="设置导航目标">
+            <span class="material-symbols-rounded md-icon" style="font-size:14px">flag</span>
+          </button>
+          <button id="btnCancelNav" class="md-btn md-btn--danger md-ripple" style="height:28px;font-size:12px;padding:0 8px;" title="取消导航">
+            <span class="material-symbols-rounded md-icon" style="font-size:14px">cancel</span>
+          </button>
+          <button id="btnFollow" class="md-btn md-btn--tonal md-ripple" style="height:28px;font-size:12px;padding:0 8px;" title="人体跟随">
+            <span class="material-symbols-rounded md-icon" style="font-size:14px">person</span>
+          </button>
+          <button id="btnRelocalize" class="md-btn md-btn--outlined md-ripple" style="height:28px;font-size:12px;padding:0 8px;" title="全局重定位">
+            <span class="material-symbols-rounded md-icon" style="font-size:14px">explore</span>
+          </button>
+          <button id="btnRegion" class="md-btn md-btn--tonal md-ripple" style="height:28px;font-size:12px;padding:0 8px;" title="区域管理">
+            <span class="material-symbols-rounded md-icon" style="font-size:14px">layers</span>
+          </button>
+        </div>
+      </div>
+      <div class="map-canvas-wrap">
+        <canvas id="mapCanvas"></canvas>
+        <div class="map-offline-overlay" id="mapOfflineOverlay">
+          <span class="material-symbols-rounded md-icon">map_off</span>
+          <span>地图未加载</span>
+          <span style="font-size:11px;opacity:0.5;">等待 SLAM 或导航发布地图数据...</span>
+        </div>
+        <div class="map-legend">
+          <span><span class="legend-dot" style="background:#444749"></span>未知</span>
+          <span><span class="legend-dot" style="background:#e2e2e9"></span>空闲</span>
+          <span><span class="legend-dot" style="background:#1a1b21"></span>障碍</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <!-- Camera -->
+      <div class="card camera-panel sidebar-card">
+        <div class="card__title">
+          <span class="material-symbols-rounded md-icon">videocam</span>
+          实时画面
+          <span class="camera-status" id="camStatus">连接中...</span>
+          <button id="btnCamRetry" class="md-btn md-btn--outlined md-ripple" style="height:24px;font-size:10px;padding:0 6px;margin-left:auto;display:none;">
+            <span class="material-symbols-rounded md-icon" style="font-size:12px">refresh</span>
+          </button>
+        </div>
+        <div class="camera-view-wrap">
+          <img id="cameraStream" alt="Camera Stream" />
+          <div class="camera-offline-overlay" id="camOfflineOverlay">
+            <span class="material-symbols-rounded md-icon">videocam_off</span>
+            <span id="camOfflineText">摄像头未连接</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Telemetry -->
+      <div class="card values-panel sidebar-card">
+        <div class="card__title">
+          <span class="material-symbols-rounded md-icon">monitoring</span>
+          实时数据
+        </div>
+        <div class="value-grid">
+          <div class="value-chip">
+            <span class="value-chip__label">Yaw</span>
+            <span class="value-chip__value" id="valYaw">0.00&#xB0;</span>
+          </div>
+          <div class="value-chip">
+            <span class="value-chip__label">Roll</span>
+            <span class="value-chip__value" id="valRoll">0.00&#xB0;</span>
+          </div>
+          <div class="value-chip">
+            <span class="value-chip__label">Pitch</span>
+            <span class="value-chip__value" id="valPitch">0.00&#xB0;</span>
+          </div>
+          <div class="value-chip">
+            <span class="value-chip__label">速度</span>
+            <span class="value-chip__value" id="valVel">0.00 m/s</span>
+          </div>
+          <div class="value-chip">
+            <span class="value-chip__label">YawRate</span>
+            <span class="value-chip__value" id="valGyroZ">0.00 r/s</span>
+          </div>
+          <div class="value-chip">
+            <span class="value-chip__label">电池</span>
+            <span class="value-chip__value" id="valBattery">0.0 V</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Region List -->
+      <div class="card region-panel sidebar-card" id="regionPanel">
+        <div class="card__title">
+          <span class="material-symbols-rounded md-icon">layers</span>
+          区域列表
+          <span style="font-size:10px;color:var(--md-sys-color-on-surface-variant);margin-left:auto;" id="regionCount">0个</span>
+        </div>
+        <div class="region-list" id="regionList">
+          <span style="font-size:12px;color:var(--md-sys-color-on-surface-variant);">暂��区域</span>
+        </div>
+      </div>
+        <div class="value-grid">
+          <div class="value-chip">
+            <span class="value-chip__label">Yaw</span>
+            <span class="value-chip__value" id="valYaw">0.00°</span>
+          </div>
+          <div class="value-chip">
+            <span class="value-chip__label">Roll</span>
+            <span class="value-chip__value" id="valRoll">0.00°</span>
+          </div>
+          <div class="value-chip">
+            <span class="value-chip__label">Pitch</span>
+            <span class="value-chip__value" id="valPitch">0.00°</span>
+          </div>
+          <div class="value-chip">
+            <span class="value-chip__label">速度</span>
+            <span class="value-chip__value" id="valVel">0.00 m/s</span>
+          </div>
+          <div class="value-chip">
+            <span class="value-chip__label">YawRate</span>
+            <span class="value-chip__value" id="valGyroZ">0.00 r/s</span>
+          </div>
+          <div class="value-chip">
+            <span class="value-chip__label">电池</span>
+            <span class="value-chip__value" id="valBattery">0.0 V</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Row 2: Joints (left) + Joystick & Control (right) -->
+  <div class="main-layout">
+    <!-- Joints -->
+    <div class="card joint-panel">
+      <div class="card__title">
+        <span class="material-symbols-rounded md-icon">accessibility</span>
+        关节 &amp; 状态
+      </div>
+      <div class="joint-grid">
+        <div class="joint-side">
+          <span class="joint-side__label">左腿</span>
+          <div class="bar-group">
+            <span class="bar-group__label">摆角</span>
+            <div class="bar-track"><div class="bar-fill" id="barThetaL" style="width:50%"></div></div>
+            <span class="bar-val" id="txtThetaL">0.00</span>
+          </div>
+          <div class="bar-group">
+            <span class="bar-group__label">腿长</span>
+            <div class="bar-track"><div class="bar-fill bar-fill--leg" id="barL0L" style="width:30%"></div></div>
+            <span class="bar-val" id="txtL0L">0.14</span>
+          </div>
+          <div class="bar-group">
+            <span class="bar-group__label">力矩</span>
+            <div class="bar-track"><div class="bar-fill bar-fill--torque" id="barTwL" style="width:50%"></div></div>
+            <span class="bar-val" id="txtTwL">0.00</span>
+          </div>
+        </div>
+        <div class="joint-side">
+          <span class="joint-side__label">右腿</span>
+          <div class="bar-group">
+            <span class="bar-group__label">摆角</span>
+            <div class="bar-track"><div class="bar-fill" id="barThetaR" style="width:50%"></div></div>
+            <span class="bar-val" id="txtThetaR">0.00</span>
+          </div>
+          <div class="bar-group">
+            <span class="bar-group__label">腿长</span>
+            <div class="bar-track"><div class="bar-fill bar-fill--leg" id="barL0R" style="width:30%"></div></div>
+            <span class="bar-val" id="txtL0R">0.14</span>
+          </div>
+          <div class="bar-group">
+            <span class="bar-group__label">力矩</span>
+            <div class="bar-track"><div class="bar-fill bar-fill--torque" id="barTwR" style="width:50%"></div></div>
+            <span class="bar-val" id="txtTwR">0.00</span>
+          </div>
+        </div>
+      </div>
+      <div class="contact-grid">
+        <div class="contact-indicator" id="contactL">
+          <span class="material-symbols-rounded md-icon">front_loader</span>
+          <span>左腿: 离地</span>
+        </div>
+        <div class="contact-indicator" id="contactR">
+          <span class="material-symbols-rounded md-icon">front_loader</span>
+          <span>右腿: 离地</span>
+        </div>
+        <div class="contact-indicator" id="jumpState">
+          <span class="material-symbols-rounded md-icon">exercise</span>
+          <span>跳跃: 就绪</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Control Column (Joystick + Control Panel) -->
+    <div class="control-column">
+      <!-- Joystick Compact -->
+      <div class="card joystick-compact">
+        <div class="card__title">
+          <span class="material-symbols-rounded md-icon">sports_esports</span>
+          虚拟摇杆
+        </div>
+        <div class="joystick-compact-row">
+          <div class="joystick-canvas-wrap">
+            <canvas id="joystickCanvas"></canvas>
+          </div>
+          <div class="joystick-readout">
+            <div class="joystick-gauge">
+              <span class="joystick-gauge__arrow" id="joyArrowV">—</span>
+              <span class="joystick-gauge__value" id="joyV">0.00 m/s</span>
+            </div>
+            <div class="joystick-gauge">
+              <span class="joystick-gauge__arrow" id="joyArrowW">—</span>
+              <span class="joystick-gauge__value" id="joyW">0.00 rad/s</span>
+            </div>
+          </div>
+          <div class="joystick-toggle">
+            <label class="joystick-toggle__label" for="chkKeyboard">
+              <span class="material-symbols-rounded md-icon" style="font-size:14px">keyboard</span>
+              WASD
+            </label>
+            <label class="joystick-toggle__switch">
+              <input type="checkbox" id="chkKeyboard">
+              <span class="joystick-toggle__slider"></span>
+            </label>
+          </div>
+        </div>
+        <div class="joystick-kbd-toggle" onclick="togglePanel('kbdBody','kbdToggle')">
+          <span class="collapse-icon collapsed" id="kbdToggle">▼</span>
+          键盘设置
+        </div>
+        <div class="joystick-kbd-body expanded-false" id="kbdBody">
+          <div class="joystick-speed">
+            <label class="joystick-speed__label">
+              键控速度 <span class="joystick-speed__value" id="txtKbdSpeed">100%</span>
+            </label>
+            <input type="range" id="sliderKbdSpeed" min="10" max="100" step="5" value="100">
+          </div>
+          <div class="joystick-speed">
+            <label class="joystick-speed__label">
+              直线加速 <span class="joystick-speed__value" id="txtKbdRampV">1.0 m/s²</span>
+            </label>
+            <input type="range" id="sliderKbdRampV" min="0.1" max="5.0" step="0.1" value="1.0">
+          </div>
+          <div class="joystick-speed">
+            <label class="joystick-speed__label">
+              转向加速 <span class="joystick-speed__value" id="txtKbdRampW">1.0 r/s²</span>
+            </label>
+            <input type="range" id="sliderKbdRampW" min="0.1" max="5.0" step="0.1" value="1.0">
+          </div>
+        </div>
+      </div>
+
+      <!-- Control Panel -->
+      <div class="card control-panel">
+        <div class="card__title">
+          <span class="material-symbols-rounded md-icon">gamepad</span>
+          控制面板
+        </div>
+        <div class="ctrl-buttons">
+          <button id="btnEnable" class="md-btn md-btn--filled md-ripple">
+            <span class="material-symbols-rounded md-icon">play_arrow</span>
+            使能
+          </button>
+          <button id="btnDisable" class="md-btn md-btn--tonal md-ripple">
+            <span class="material-symbols-rounded md-icon">pause</span>
+            停止
+          </button>
+          <button id="btnEstop" class="md-btn md-btn--danger md-ripple">
+            <span class="material-symbols-rounded md-icon">emergency</span>
+            急停
+          </button>
+          <button id="btnJump" class="md-btn md-btn--outlined md-ripple">
+            <span class="material-symbols-rounded md-icon">arrow_upward</span>
+            跳跃
+          </button>
+          <button id="btnRecover" class="md-btn md-btn--tonal md-ripple">
+            <span class="material-symbols-rounded md-icon">replay</span>
+            自起
+          </button>
+          <label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:12px;color:var(--md-on-surface-variant);margin-left:auto;">
+            <input type="checkbox" id="chkKeepAlive" style="width:14px;height:14px;accent-color:var(--md-primary);">
+            持续心跳
+          </label>
+        </div>
+        <div class="ctrl-sliders">
+          <div class="slider-group">
+            <label>v_set <span class="slider-value" id="txtVset">0.00</span></label>
+            <input type="range" id="sliderVset" min="-1.5" max="1.5" step="0.01" value="0">
+          </div>
+          <div class="slider-group">
+            <label>yaw_rate <span class="slider-value" id="txtYawRate">0.00</span></label>
+            <input type="range" id="sliderYawRate" min="-3.14" max="3.14" step="0.01" value="0">
+          </div>
+          <div class="slider-group">
+            <label>leg_set <span class="slider-value" id="txtLegSet">0.14</span></label>
+            <input type="range" id="sliderLegSet" min="0.11" max="0.22" step="0.001" value="0.14">
+          </div>
+          <div class="slider-group">
+            <label>roll <span class="slider-value" id="txtRollSet">0.00</span></label>
+            <input type="range" id="sliderRollSet" min="-0.4" max="0.4" step="0.01" value="0">
+          </div>
+          <div class="slider-group">
+            <label>pitch <span class="slider-value" id="txtPitchSet">0.00</span></label>
+            <input type="range" id="sliderPitchSet" min="-0.4" max="0.4" step="0.01" value="0">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CMD Debug Panel (collapsed by default) -->
+  <div class="card cmd-debug-panel collapsible" id="cmdDebugPanel">
+    <div class="card__title" onclick="togglePanel('cmdDebugBody','cmdDebugToggle')" style="cursor:pointer;">
+      <span class="material-symbols-rounded md-icon">data_object</span>
+      指令帧实时监控
+      <span class="collapse-icon collapsed" id="cmdDebugToggle">▼</span>
+    </div>
+    <div class="cmd-debug-body expanded-false" id="cmdDebugBody">
+      <div class="cmd-debug-current" id="cmdDebugCurrent">
+        <span class="cmd-debug-chip"><b>time</b> <span id="cdbTs">-</span></span>
+        <span class="cmd-debug-chip"><b>v_set</b> <span id="cdbV">-</span></span>
+        <span class="cmd-debug-chip"><b>yaw</b> <span id="cdbYaw">-</span></span>
+        <span class="cmd-debug-chip"><b>roll</b> <span id="cdbRoll">-</span></span>
+        <span class="cmd-debug-chip"><b>leg</b> <span id="cdbLeg">-</span></span>
+        <span class="cmd-debug-chip"><b>pitch</b> <span id="cdbPitch">-</span></span>
+        <span class="cmd-debug-chip cmd-debug-flags" id="cdbFlags">flags: -</span>
+      </div>
+      <div class="cmd-debug-list-wrap">
+        <div class="cmd-debug-list" id="cmdDebugList"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Vendor (local) -->
+<script src="js/vendor/eventemitter2.min.js"></script>
+<script src="js/vendor/roslib.min.js"></script>
+<script src="js/dashboard.js"></script>
+</body>
+</html>

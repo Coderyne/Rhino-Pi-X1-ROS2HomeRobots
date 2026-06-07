@@ -1,0 +1,14 @@
+# 人体跟随参数
+person_follower:
+  ros__parameters:
+    target_radius: 0.3          # 目标搜索半径 (m)
+    follow_distance: 0.8        # 跟随距离 (m)
+    robot_frame_front: 0.15     # 机器人自身遮挡过滤-前 (m)
+    robot_frame_back: 0.35      # 机器人自身遮挡过滤-后 (m)
+    robot_frame_side: 0.15      # 机器人自身遮挡过滤-侧 (m)
+    max_linear_speed: 0.5       # 最大线速度 (m/s)
+    goal_min_distance: 0.025    # 目标位移低于此值不发布新goal (m)
+    goal_min_interval: 0.5       # 两次 goal 发布最小间隔 (s)
+    enable_kalman: true         # 启用 Kalman 滤波
+    process_noise: 0.1          # 过程噪声 (越大越信任测量)
+    measurement_noise: 0.05     # 测量噪声 (越大越平滑)

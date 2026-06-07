@@ -1,0 +1,39 @@
+"""mqtt_bridge 节点启动参数"""
+
+mqtt_bridge:
+  ros__parameters:
+    # MQTT Broker
+    mqtt_host: "127.0.0.1"
+    mqtt_port: 1883
+    mqtt_username: ""
+    mqtt_password: ""
+
+    # Topic 命名空间前缀
+    topic_prefix: "wheel_robot"
+
+    # 关键地点坐标映射 (名称 → [x, y, yaw])
+    location_map:
+      "充电桩": [0.0, 0.0, 0.0]
+      "起始点": [0.0, 0.0, 0.0]
+      "厨房": [2.5, 1.8, 0.0]
+      "客厅": [-1.2, 3.1, 0.0]
+      "卧室": [3.0, -1.5, 0.0]
+      "门口": [1.0, 2.0, 1.57]
+
+    # 电池电压换算: percentage = (voltage - min_v) / (max_v - min_v) * 100
+    battery_min_voltage: 21.0
+    battery_max_voltage: 25.2
+
+    # 导航到达判定阈值 (米)
+    goal_tolerance: 0.2
+    goal_reached_seconds: 2.0
+
+    # LLM 提示词 (用于自然语言指令解析)
+    llm_system_prompt: >
+      你是轮足机器人导航助手。用户会给出一个指令，请判断是否为导航请求。
+      如果是去某个地点, 回复格式: [NAV]地点名
+      如果是聊天或问答, 正常回复。
+      已知地点: 充电桩, 起始点, 厨房, 客厅, 卧室, 门口。
+
+    # 巡检参数
+    patrol_interval_seconds: 3.0

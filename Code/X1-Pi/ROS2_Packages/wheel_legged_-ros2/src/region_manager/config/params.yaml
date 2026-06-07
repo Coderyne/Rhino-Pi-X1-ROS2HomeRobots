@@ -1,0 +1,5 @@
+# 区域管理器配置
+region_manager:
+  ros__parameters:
+    regions_file: ""
+    map_frame: "map"
