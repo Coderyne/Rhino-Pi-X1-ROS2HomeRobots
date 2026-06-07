@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
+"""HA 语音助手入口 — 外部管道模式
+
+解析命令行参数，构建配置，启动流水线（KWS → ASR → HA API → TTS）。
+"""
 import argparse
 import logging
 import os
-import re
 import signal
 import sys
 import time
@@ -15,6 +18,7 @@ _KEYS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "keys.txt"
 
 
 def _read_token_from_file(path: str) -> str:
+    """从 keys.txt 读取 HA_TOKEN 行"""
     if not os.path.isfile(path):
         return ""
     with open(path) as f:
@@ -26,6 +30,7 @@ def _read_token_from_file(path: str) -> str:
 
 
 def get_args() -> argparse.Namespace:
+    """解析全部命令行参数"""
     parser = argparse.ArgumentParser(
         description="HA 语音助手: KWS -> ASR -> HA Assist -> TTS",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
@@ -85,6 +90,7 @@ def get_args() -> argparse.Namespace:
 
 
 def build_config(args: argparse.Namespace) -> AssistantConfig:
+    """将命令行参数映射到 AssistantConfig"""
     # 优先使用命令行传入的 token，否则从 keys.txt 读取
     token = args.ha_token or _read_token_from_file(_KEYS_FILE)
 
@@ -118,6 +124,7 @@ def build_config(args: argparse.Namespace) -> AssistantConfig:
 
 
 def main() -> None:
+    """启动入口：解析参数 → 构建配置 → 启动流水线 → 等待 Ctrl+C"""
     args = get_args()
 
     logging.basicConfig(

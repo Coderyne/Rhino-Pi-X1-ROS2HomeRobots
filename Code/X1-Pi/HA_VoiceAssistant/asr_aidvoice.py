@@ -131,6 +131,10 @@ class AidVoiceASR:
     # ── 回调 ──────────────────────────────────────────────────
 
     def _on_result(self, status: int, text: bytes, _sid: int, _userdata) -> None:
+        """NPU 推理结果的回调函数（由 C 库的工作线程调用）
+
+        仅当状态为 TYPE_FINAL（最终结果）且包含足够中文字符时才保留文本。
+        """
         text_str = text.decode("utf-8") if text else ""
         stripped = text_str.strip()
 
@@ -147,6 +151,7 @@ class AidVoiceASR:
                     self._sentence_ready = True
 
     def _on_error(self, code: int, message: bytes, _userdata) -> None:
+        """NPU 错误回调"""
         msg = message.decode("utf-8") if message else ""
         with self._lock:
             self._error_message = msg
@@ -155,6 +160,7 @@ class AidVoiceASR:
     # ── 公开接口 ──────────────────────────────────────────────
 
     def process(self, samples: np.ndarray) -> None:
+        """送入音频样本，等待累积到静音后自动提交识别"""
         with self._lock:
             if not self._active or self._submitted:
                 return
@@ -169,6 +175,13 @@ class AidVoiceASR:
         return ""
 
     def detect_endpoint(self) -> bool:
+        """检查是否检测到语音结束点
+
+        返回 True 表示结果已就绪，可调用 finalize() 获取。
+        触发结束的条件：
+        1. NPU 回调已返回 FINAL 结果（_sentence_ready）
+        2. VAD 检测到足够时长的静音后自动提交，且回调已返回
+        """
         should_submit = False
         with self._lock:
             if self._sentence_ready:
@@ -181,6 +194,7 @@ class AidVoiceASR:
             if not should_submit:
                 return False
 
+        # 持锁状态不可调用 NPU 函数（避免回调死锁），提交操作放到锁外
         self._do_submit()
         return False
 

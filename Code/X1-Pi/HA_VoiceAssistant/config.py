@@ -4,6 +4,11 @@ from pathlib import Path
 
 @dataclass
 class AssistantConfig:
+    """语音助手的全部配置项
+
+    所有字段都有默认值，通过 start.py 的参数解析器填充。
+    validate() 在启动时检查必填文件和令牌是否存在。
+    """
 
     # ── KWS 关键词唤醒 ─────────────────────────────────────────────────
     kws_encoder: str = ""
@@ -43,6 +48,7 @@ class AssistantConfig:
     sample_rate: int = 16000
 
     def validate(self) -> None:
+        """检查必填的模型文件是否存在、HA_TOKEN 是否已设置"""
         required_files = {
             "kws_encoder": self.kws_encoder,
             "kws_decoder": self.kws_decoder,

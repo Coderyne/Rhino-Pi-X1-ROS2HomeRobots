@@ -42,6 +42,12 @@ def _detect_playback_device(device_name: str, playback_device: str = "") -> Opti
 
 
 class Pipeline:
+    """语音助手主流水线
+
+    状态机驱动，四个状态：
+      IDLE → LISTENING → PROCESSING → SPEAKING → IDLE
+      └─ 等待唤醒词  听用户说话  HA 请求中  TTS 播报
+    """
 
     def __init__(self, config: AssistantConfig) -> None:
         self._config = config
@@ -145,6 +151,7 @@ class Pipeline:
     # ── 音频回调 ──────────────────────────────────────────────────
 
     def _on_audio_samples(self, samples: np.ndarray) -> None:
+        """AudioCapture 的回调，每 100ms 一帧音频送入队列"""
         try:
             self._audio_queue.put_nowait(samples)
         except queue.Empty:
@@ -153,6 +160,7 @@ class Pipeline:
     # ── 主处理循环 ──────────────────────────────────────────────
 
     def _processing_loop(self) -> None:
+        """后台线程：从音频队列取帧，按当前状态分派到对应处理器"""
         logger.info("处理循环已启动")
 
         while not self._stop_event.is_set():
@@ -176,6 +184,7 @@ class Pipeline:
 
     @staticmethod
     def _is_meaningful_text(text: str) -> bool:
+        """去掉标点后至少保留 3 个有效字符才认为是有效输入"""
         stripped = text.strip()
         if not stripped:
             return False
@@ -187,6 +196,7 @@ class Pipeline:
 
     @staticmethod
     def _split_sentences(text: str) -> list[str]:
+        """按标点切分文本为多个短句，用于逐句 TTS"""
         sentences = []
         buf = ""
         for ch in text:

@@ -39,13 +39,17 @@ HA_VoiceAssistant/
 ├── audio.py                 # ALSA 麦克风采集
 ├── wakeword.py              # sherpa-onnx 关键词唤醒检测
 ├── asr_aidvoice.py          # AidVoice NPU SenseVoice 语音识别
-├── asr_bridge.so            # NPU ASR C 动态库
+├── asr_bridge.cpp           # NPU ASR C 桥接源码
+├── asr_bridge.h             # NPU ASR C 桥接头文件
+├── asr_bridge.so            # NPU ASR C 动态库（预编译）
 ├── tts.py                   # VITS-Piper 语音合成 + 流式播放
 ├── ha_client.py             # HA Conversation API 客户端
 ├── pipeline.py              # 流水线编排（KWS → ASR → HA API → TTS）
 ├── start.py                 # 外部管道模式入口
 ├── start.sh                 # 外部管道模式启动脚本
 ├── keys.txt                 # HA 长期访问令牌（用户自行填写）
+├── migrate/                 # 迁移部署指南
+│   └── README.md
 ├── stt_server/              # Wyoming STT 服务器
 │   ├── __init__.py
 │   ├── server.py            # AidVoice Wyoming STT 服务端
@@ -56,7 +60,8 @@ HA_VoiceAssistant/
     │   ├── decoder-epoch-12-avg-2-chunk-16-left-64.int8.onnx
     │   ├── joiner-epoch-12-avg-2-chunk-16-left-64.int8.onnx
     │   ├── tokens.txt
-    │   └── keywords.txt
+    │   ├── keywords.txt
+    │   └── keywords_raw.txt
     └── vits-piper-zh_CN-xiao_ya-medium-fp16/
         ├── zh_CN-xiao_ya-medium.fp32.onnx
         ├── tokens.txt
@@ -131,20 +136,67 @@ bash start.sh
 | `--kws-joiner` | KWS joiner ONNX 路径 | 必填 |
 | `--kws-tokens` | KWS tokens.txt 路径 | 必填 |
 | `--kws-keywords` | keywords.txt 路径 | 必填 |
+| `--kws-num-threads` | KWS 推理线程数 | `1` |
+| `--kws-threshold` | 唤醒灵敏度阈值 | `0.10` |
+| `--kws-score` | 关键词加分值 | `1.5` |
 | `--tts-model` | TTS 模型 ONNX 路径 | 必填 |
 | `--tts-tokens` | TTS tokens.txt 路径 | 必填 |
+| `--tts-lexicon` | TTS lexicon.txt 路径 | `""` |
+| `--tts-rule-fsts` | 文本归一化 FST 文件（逗号分隔） | `""` |
+| `--tts-speed` | 语速 (>1 更快) | `1.0` |
+| `--tts-mode` | TTS 播报模式，`sentence` 逐句 / `full` 整段 | `sentence` |
+| `--volume-gain` | 音量增益 | `1.0` |
+| `--asr-cooldown-ms` | TTS 回复后的冷却期（毫秒） | `1200` |
 | `--ha-url` | HA 服务器地址 | `http://localhost:8123` |
 | `--ha-agent-id` | 对话助手 agent_id | `conversation.qwen3_4b_8550` |
+| `--ha-timeout` | HTTP 请求超时（秒） | `30` |
 | `--device-name` | ALSA 录音设备 | `plughw:2,0` |
+| `--playback-device` | ALSA 播放设备名，留空自动检测 | `""` |
 
 ### 唤醒词列表
 
-编辑 `models/.../keywords.txt`，格式：拼音 token（空格分隔） + `@` + 显示文本
+创建 `keywords_raw.txt`，每行写中文唤醒词，空格用下划线代替：
+
+```
+小爱同学 @小爱同学
+你好军哥 @你好军哥
+```
+
+使用 `sherpa-onnx-cli text2token` 工具转为拼音 token 格式：
+
+```bash
+sherpa-onnx-cli text2token \
+  --tokens models/sherpa-onnx-kws-zipformer-wenetspeech-3.3M-2024-01-01/tokens.txt \
+  --tokens-type ppinyin \
+  keywords_raw.txt keywords.txt
+```
+
+生成的文件格式如下：
 
 ```
 x iǎo ài t óng x ué @小爱同学
 n ǐ h ǎo j ūn g ē @你好军哥
 ```
+
+放入模型目录覆盖原文件，重启助手即可生效。
+
+## TTS 播报模式
+
+支持两种播报方式，通过 `--tts-mode` 参数切换：
+
+| 模式 | 参数 | 行为 |
+|------|------|------|
+| **逐句播报** | `--tts-mode sentence`（默认） | 按标点拆分为句子，逐句合成播放，延迟低 |
+| **整段播报** | `--tts-mode full` | 整段文本一次合成后播放 |
+
+```bash
+# 整段播报
+./start.sh --tts-mode full
+```
+
+## 迁移到其他机器
+
+同型号设备迁移部署请参考 [migrate/README.md](migrate/README.md)。
 
 ## Wyoming 协议说明
 
