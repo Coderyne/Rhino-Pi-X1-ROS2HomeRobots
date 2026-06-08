@@ -31,9 +31,9 @@
 - **轮足机器人控制** — 基于 STM32H723 + FreeRTOS 的底层控制，集成 EKF/Mahony 姿态解算、LQR 平衡控制、VMC 腿部运动学，支持前进/转向/跳跃/自起等动作能力。兼容 Xbox 无线手柄遥控，通过串口协议接收 ROS2 上位机指令。
 - **SLAM/导航** — 集成 slam_toolbox 建图和 Nav2 导航框架，支持 AMCL 全局定位、路径规划与动态避障。提供区域导航管理（命名区域 + JSON 持久化），支持 Web 仪表盘可视化交互。
 - **人员跟随** — 基于人工势场法的人体跟随，支持 Web 端框选目标，自动发布 `/goal_pose` 驱动机器人跟随。
-- **ASR/TTS/KWS** — 本地部署 sherpa-onnx 关键词唤醒 + AidVoice NPU SenseVoice 语音识别 + VITS-Piper 中文语音合成，实现完全离线的语音交互。支持 Wyoming 协议接入 Home Assistant Assist 管道。
+- **ASR/TTS/KWS** — 本地部署 sherpa-onnx 关键词唤醒 + AidVoice NPU SenseVoice 语音识别 + VITS-Piper 中文语音合成，实现完全离线的语音交互。
 - **GIF 表情播放器** — 基于 PySide6 的全屏 GIF 播放器，通过命名管道动态切换，实现情感化交互反馈。
-- **Qwen3-4B LLM** — 在 NPU 上本地部署 Qwen3-4B-Instruct 模型，支持流式对话推理，通过 openai 协议对接 Home Assistant 的语音Agent。
+- **Qwen3-4B LLM** — 在 NPU 上本地部署 Qwen3-4B-Instruct 模型，支持流式对话推理，通过 OpenAI 协议对接 Home Assistant 的语音Agent。
 - **Home Assistant 集成** — 通过 MQTT 桥接和 REST API 将机器人传感器、状态、控制指令集成到 Home Assistant，实现智能家居联动和语音控制。
 - **Web 仪表盘** — 基于 roslibjs 的实时 Web 可视化面板，支持实时数值/曲线监控、交互式地图（缩放/平移/导航选点/区域管理）、控制面板（运动控制/使能/急停）。
 
@@ -47,12 +47,12 @@
 | 下位机主控 | 达妙 DM-MC02(STM32H723VGT6) | 电机驱动与控制 |
 | Xbox手柄通信(可选) | ESP32 | BLE 连接 Xbox 手柄，串口转发至 STM32 |
 | 关节电机 | GIM6010 ×4 | CAN 总线，髋关节驱动 |
-| 轮毂电机 | DM4310 ×2 | CAN 总线，驱动轮 |
+| 轮毂电机 | DM6215 ×2 | CAN 总线，驱动轮 |
 | IMU | BMI088 | 板载传感器，支持6轴姿态检测 |
 | 激光雷达 | LD06 | 360° 2D 激光雷达 |
 | 深度相机 | 奥比中光AstraPro | 视觉感知 |
 | 显示屏 | 7 寸HDMI触摸屏 | 表情显示&触摸交互 |
-| 电池 | DJI Matrice 4D | 机器人24V供电 |
+| 电池 | DJI Matrice 4D电池 | 机器人24V供电 |
 
 ---
 
@@ -76,8 +76,8 @@
 │  │ (KWS/ASR/TTS)│  └──────┬───────┘  └────────────────────┘   │
 │  └──────┬───────┘         │                                   │
 │         │                 │                                   │
-│  ┌──────┴─────────────────┴──────────────────────────────┐   │
-│  │              ROS2 功能包 (wheel_legged_-ros2)           │   │
+│  ┌──────┴─────────────────┴──────────────────────────────┐    │
+│  │              ROS2 功能包 (wheel_legged_-ros2)          │   │
 │  │                                                        │   │
 │  │  stm32_bridge  wheel_foot_nav  perception              │   │
 │  │  mqtt_bridge   region_manager  ldlidar_driver          │   │
@@ -88,18 +88,18 @@
                           │ UART (USB CDC)
                           ▼
 ┌───────────────────────────────────────────────────────────────┐
-│                  STM32H723 (FreeRTOS)                          │
+│                  STM32H723 (FreeRTOS)                         │
 │                                                               │
-│  姿态解算 (EKF/Mahony)  VMC 腿部控制  PID 控制器               │
-│  LQR 平衡控制          跳跃控制       自起控制                 │
-│  DM4310 / GIM6010 电机驱动 (CAN)                              │
-│  PS2 / Xbox 遥控接收   VOFA+ 调试输出  电源管理               │
+│  姿态解算 (EKF/Mahony)  VMC 腿部控制  PID 控制器                │
+│  LQR 平衡控制          跳跃控制       自起控制                  │
+│  DM4310 / GIM6010 电机驱动 (CAN)                               │
+│  Xbox 遥控接收   VOFA+ 调试输出  电源管理                       │
 └─────┬─────────────────────────────────────────────────────────┘
       │ UART(可选)
       ▼
 ┌───────────────────────────────────────────────────────────────┐
-│                     ESP32 (Xbox BLE)                           │
-│  Xbox Series X 手柄蓝牙连接 → HID 解析 → 串口转发至 STM32     │
+│                     ESP32 (Xbox BLE)                          │
+│  Xbox Series X 手柄蓝牙连接 → HID 解析 → 串口转发至 STM32       │
 └───────────────────────────────────────────────────────────────┘
 ```
 
@@ -170,7 +170,7 @@
 | Home Assistant | [部署指南](Guide/X1_Ubuntu/HomeAssistant/HomeAssistant-Docker安装.md) | Docker 安装 + 集成配置 |
 | 开机自启 | [配置指南](Guide/X1_Ubuntu/开机自启配置.md) | systemd 服务配置 |
 
-> **🚧 TODO：** X1 派的部署步骤较为复杂，后续将打包上传完整镜像文件，以便一键烧录部署。
+> **🚧 TODO：** X1 派的部署步骤较为复杂，后续将打包上传完整镜像文件至网盘，以便一键烧录部署。
 
 ---
 
